@@ -59,11 +59,13 @@
 		
 		private function validateHost($host, &$isWildcard)
 		{
+			global $config;
+
 		 	/* dnsmasq allows wildcard entries by prefixing a host with a
 			 period. This constructor recognizes that and appends something
 			 in front of the host during validation so that it passes. */
 			if (strpos($host, '.') === 0) {
-				$host = "a.{$host}";
+				$host = "a{$host}";
 				
 				$isWildcard = TRUE;
 			} else {
@@ -72,6 +74,45 @@
 
 			/* This is the most lazy solution yet to validate a 
 			host, but who wants to deal with regular expression? */
-			return (filter_var("http://{$host}/index.htnl?q=1", FILTER_VALIDATE_URL) !== FALSE);
+			if (filter_var("http://{$host}/index.htnl?q=1", FILTER_VALIDATE_URL) === FALSE) {
+				return FALSE;
+			}
+
+			/* Maybe exclude host */
+			if ($isWildcard === FALSE && $config['exclude_unresolved_hosts']) {
+				if (HostEntry::hostHasResolvableAddress($host, 'A') === FALSE &&
+					HostEntry::hostHasResolvableAddress($host, 'AAAA') === FALSE &&
+					HostEntry::hostHasResolvableAddress($host, 'CNAME') === FALSE) 
+				{
+					return FALSE;
+				}
+			}
+			
+			return TRUE;
+		}
+		
+		private function hostHasResolvableAddress($host, $type = 'A')
+		{
+			if ($type !== 'A' &&
+				$type !== 'AAAA' &&
+				$type !== 'CNAME' && 
+				$type !== 'MX')
+			{
+				return FALSE;
+			}
+	
+	    	$hostEscaped = escapeshellcmd($host);
+			
+			ob_start(); 
+	        
+	        /* dig is used to allow us to easily configure the resolver and 
+		    timeout which PHP does not allow unless you use some type of addon. */
+	        passthru("dig +time=2 +tries=2 {$host} {$type} @8.8.8.8"); 
+	        
+	        $lookupResult = ob_get_contents(); 
+	   
+			ob_end_clean(); 
+			
+			return (strpos($lookupResult, "ANSWER SECTION:") > 0);
 		}
 	}

@@ -37,7 +37,7 @@
 	/* Loop through list of hosts file lists, downloading 
 	their list of domains, comparing them to list of exempt 
 	addresses, and adding to final list of addresses. */
-	foreach ($adblock_lists as $list_url) 
+	foreach ($config['hosts_list'] as $list_url) 
 	{
 		echo "Downloading contents of hosts file at URL: '{$list_url}'...\n";
 
@@ -48,7 +48,7 @@
 		}
 		
 		foreach ($domains as $domain) {
-			if (in_array($domain, $excluded_domains)) {
+			if (in_array($domain, $config['excluded_hosts'])) {
 				continue;	
 			}	
 
@@ -86,23 +86,23 @@
 \n\n
 EOT;
 
-	foreach ($write_locations as $write_format => $write_location) {
+	foreach ($config['write_locations'] as $write_format => $write_location) {
 		$final_result_string = $final_result_string_header;
 
 		foreach ($domain_list as $domain) {
 			if ($write_format === 'dnsmasq') {
-				$final_result_string .= "address=/{$domain->host}/{$destination_ip_address}\n";
+				$final_result_string .= "address=/{$domain->host}/{$config['destination_ip_address']}\n";
 			} else {
 				if ($domain->isWildcard === TRUE) {
 					continue;
 				}
 
-				$final_result_string .= "{$destination_ip_address} {$domain->host}\n";
+				$final_result_string .= "{$config['destination_ip_address']} {$domain->host}\n";
 			}
 		}
 		
 		if (file_put_contents($write_location, $final_result_string, LOCK_EX) === FALSE) {
-			echo "Error: Failed to write contents to file: {$write_location} - Exiting!";
+			echo "Error: Failed to write contents to file: {$write_location} - Exiting!\n";
 
 			exit(-1);
 		}
