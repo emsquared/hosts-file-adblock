@@ -101,16 +101,16 @@
 				return FALSE;
 			}
 	
-	    	$hostEscaped = escapeshellcmd($host);
+			$hostEscaped = escapeshellcmd($host);
 			
 			ob_start(); 
-	        
-	        /* dig is used to allow us to easily configure the resolver and 
-		    timeout which PHP does not allow unless you use some type of addon. */
-	        passthru("dig +time=2 +tries=2 {$host} {$type} @8.8.8.8"); 
-	        
-	        $lookupResult = ob_get_contents(); 
-	   
+			
+			/* dig is used to allow us to easily configure the resolver and 
+			timeout which PHP does not allow unless you use some type of addon. */
+			passthru("dig +time=2 +tries=2 {$hostEscaped} {$type} @8.8.8.8"); 
+			
+			$lookupResult = ob_get_contents(); 
+			
 			ob_end_clean(); 
 			
 			return (strpos($lookupResult, "ANSWER SECTION:") > 0);
