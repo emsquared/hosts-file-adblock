@@ -29,6 +29,7 @@
 	 
 	require_once './config.php';
 
+	require_once './includes/data-structure.php';
 	require_once './includes/utility-functions.php';
 	
 	$domain_list = array();
@@ -90,9 +91,13 @@ EOT;
 
 		foreach ($domain_list as $domain) {
 			if ($write_format === 'dnsmasq') {
-				$final_result_string .= "address=/{$domain}/{$destination_ip_address}\n";
+				$final_result_string .= "address=/{$domain->host}/{$destination_ip_address}\n";
 			} else {
-				$final_result_string .= "{$destination_ip_address} {$domain}\n";
+				if ($domain->isWildcard === TRUE) {
+					continue;
+				}
+
+				$final_result_string .= "{$destination_ip_address} {$domain->host}\n";
 			}
 		}
 		

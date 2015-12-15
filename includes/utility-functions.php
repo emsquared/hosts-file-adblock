@@ -63,6 +63,19 @@
 			if (strlen($line) === 0 || strpos($line, '#') === 0) {
 				continue;
 			}
+			
+			/* Attempt to parse dnsmasq address= lists */
+			$isWildcardHost = FALSE;
+
+			if (strpos($line, 'address=/') === 0) {
+				$lineItems = explode('/', $line);
+				
+				if ($lineItems && count($lineItems) === 3) {
+					$line = $lineItems[1];
+					
+					goto validate_address;
+				}
+			}
 
 			/* Attempt to split up line using combinations of
 			tab and space characters. */
@@ -78,19 +91,14 @@
 				}
 			}
 			
+validate_address:
 			/* Check wether the remainder is a host */
-			if (is_internet_address($line)) {
-				$final_result[] = $line;
+			$hostEntry = HostEntry::newEntry($line);
+			
+			if ($hostEntry !== NULL) {
+				$final_result[] = $hostEntry;
 			}
 		}
 		
 		return $final_result;
-	}
-	
-	function is_internet_address($input) 
-	{
-		/* This is the most lazy solution yet to validate a 
-		host, but who wants to deal with regular expression? */
-
-		return filter_var("http://{$input}/index.htnl?q=1", FILTER_VALIDATE_URL);
 	}
