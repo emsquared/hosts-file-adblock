@@ -1,5 +1,5 @@
-This is a small project that combines any number of hosts files accessible via HTTP/HTTPS into one unified file.
-It supports writing the unified file in either dnsmasq address= format or conventional hosts file format.
+This is a small project that combines any number of hosts files accessible via HTTP/HTTPS into one unified hosts file.
+It supports writing the output in either dnsmasq ``address=`` format or conventional hosts file format.
 
 See the ``config.php`` file for configuration options.
 
